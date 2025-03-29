@@ -1,0 +1,225 @@
+type User {
+  id: ID!
+  email: String!
+  name: String!
+  phone: String
+  userType: UserType!
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum UserType {
+  TENANT
+  LANDLORD
+}
+
+type Property {
+  id: ID!
+  title: String!
+  description: String!
+  address: Address!
+  bedrooms: Int!
+  bathrooms: Float!
+  price: Float!
+  availableFrom: String!
+  amenities: [String!]
+  images: [String!]
+  owner: User!
+  status: PropertyStatus!
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RENTED
+  PENDING
+  INACTIVE
+}
+
+type Address {
+  street: String!
+  city: String!
+  state: String!
+  zipCode: String!
+  country: String!
+  latitude: Float
+  longitude: Float
+}
+
+type Application {
+  id: ID!
+  property: Property!
+  applicant: User!
+  status: ApplicationStatus!
+  creditScore: Int
+  income: Float
+  documents: [Document!]
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  SCREENING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+type Document {
+  id: ID!
+  name: String!
+  type: DocumentType!
+  url: String!
+  uploadedBy: User!
+  createdAt: String!
+}
+
+enum DocumentType {
+  ID_PROOF
+  INCOME_PROOF
+  CREDIT_REPORT
+  BACKGROUND_CHECK
+  LEASE_AGREEMENT
+  OTHER
+}
+
+type Message {
+  id: ID!
+  sender: User!
+  receiver: User!
+  content: String!
+  readAt: String
+  createdAt: String!
+}
+
+type Query {
+  getUser(id: ID!): User
+  getUsers(userType: UserType): [User!]
+  getProperty(id: ID!): Property
+  getProperties(
+    filter: PropertyFilterInput
+    limit: Int
+    offset: Int
+  ): [Property!]
+  getApplication(id: ID!): Application
+  getApplicationsByProperty(propertyId: ID!): [Application!]
+  getApplicationsByUser(userId: ID!): [Application!]
+  getDocuments(applicationId: ID!): [Document!]
+  getMessages(userId1: ID!, userId2: ID!): [Message!]
+}
+
+input PropertyFilterInput {
+  city: String
+  state: String
+  minPrice: Float
+  maxPrice: Float
+  minBedrooms: Int
+  maxBedrooms: Int
+  availableFrom: String
+  status: PropertyStatus
+}
+
+type Mutation {
+  # User mutations
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: ID!, input: UpdateUserInput!): User!
+  login(email: String!, password: String!): AuthPayload!
+  
+  # Property mutations
+  createProperty(input: CreatePropertyInput!): Property!
+  updateProperty(id: ID!, input: UpdatePropertyInput!): Property!
+  deleteProperty(id: ID!): Boolean!
+  
+  # Application mutations
+  createApplication(input: CreateApplicationInput!): Application!
+  updateApplicationStatus(id: ID!, status: ApplicationStatus!): Application!
+  
+  # Document mutations
+  uploadDocument(input: UploadDocumentInput!): Document!
+  deleteDocument(id: ID!): Boolean!
+  
+  # Message mutations
+  sendMessage(input: SendMessageInput!): Message!
+  markMessageAsRead(id: ID!): Message!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+input CreateUserInput {
+  email: String!
+  password: String!
+  name: String!
+  phone: String
+  userType: UserType!
+}
+
+input UpdateUserInput {
+  name: String
+  phone: String
+  password: String
+}
+
+input CreatePropertyInput {
+  title: String!
+  description: String!
+  address: AddressInput!
+  bedrooms: Int!
+  bathrooms: Float!
+  price: Float!
+  availableFrom: String!
+  amenities: [String!]
+  images: [String!]
+}
+
+input AddressInput {
+  street: String!
+  city: String!
+  state: String!
+  zipCode: String!
+  country: String!
+  latitude: Float
+  longitude: Float
+}
+
+input UpdatePropertyInput {
+  title: String
+  description: String
+  address: AddressInput
+  bedrooms: Int
+  bathrooms: Float
+  price: Float
+  availableFrom: String
+  amenities: [String!]
+  images: [String!]
+  status: PropertyStatus
+}
+
+input CreateApplicationInput {
+  propertyId: ID!
+  income: Float!
+  documents: [UploadDocumentInput!]
+}
+
+input UploadDocumentInput {
+  name: String!
+  type: DocumentType!
+  file: Upload!
+  applicationId: ID
+}
+
+input SendMessageInput {
+  receiverId: ID!
+  content: String!
+}
+
+type Subscription {
+  messageReceived(userId: ID!): Message!
+  applicationStatusChanged(applicationId: ID!): Application!
+}
+
+scalar Upload
